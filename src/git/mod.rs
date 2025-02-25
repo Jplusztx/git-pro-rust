@@ -122,18 +122,16 @@ impl GitRepo {
 
         // 获取原始提交信息
         let tree = last_commit.tree()?;
-        let parent_commits = last_commit.parents().collect::<Vec<_>>();
-        let parent_refs: Vec<&git2::Commit> = parent_commits.iter().collect();
 
         // 创建新的提交
         let signature = self.repo.signature()?;
-        self.repo.commit(
+        last_commit.amend(
             Some("HEAD"),
-            &signature,
-            &signature,
-            message,
-            &tree,
-            &parent_refs,
+            Some(&signature),
+            Some(&signature),
+            None,
+            Some(message),
+            Some(&tree),
         )?;
 
         Ok(())
