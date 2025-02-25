@@ -7,8 +7,9 @@ pub struct GitRepo {
 
 impl GitRepo {
     pub fn new() -> Result<Self> {
-        let repo = Repository::open(".")?;
-        Ok(Self { repo })
+        Repository::open(".")
+            .map(|repo| Self { repo })
+            .map_err(|_| GitProError::NotAGitRepository)
     }
 
     pub fn check_repository_state(&self) -> Result<()> {
@@ -30,9 +31,7 @@ impl GitRepo {
         let statuses = self.repo.statuses(Some(&mut status_opts))?;
 
         if statuses.is_empty() {
-            return Err(GitProError::RepositoryError(
-                "No changes to commit".to_string(),
-            ));
+            return Err(GitProError::NoCommits);
         }
 
         // 添加所有更改到暂存区
