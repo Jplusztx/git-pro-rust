@@ -1,0 +1,12 @@
+[package]
+name = "git-pro"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name"]
+description = "A CLI tool to simplify git operations"
+
+[dependencies]
+clap = { version = "4.5.1", features = ["derive", "cargo"] }
+git2 = "0.18"
+anyhow = "1.0"
+thiserror = "1.0"
