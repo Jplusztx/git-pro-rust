@@ -1,5 +1,26 @@
 use crate::error::{GitProError, Result};
-use git2::{Repository, RepositoryState, Status, StatusOptions};
+use git2::{Repository, RepositoryState, Status, StatusOptions, Time};
+use std::fmt;
+
+pub struct CommitInfo {
+    pub id: String,
+    pub message: String,
+    pub author: String,
+    pub time: Time,
+}
+
+impl fmt::Display for CommitInfo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{:.7} {} <{}> {}",
+            self.id,
+            self.time.seconds(),
+            self.author,
+            self.message.split('\n').next().unwrap_or("")
+        )
+    }
+}
 
 pub struct GitRepo {
     repo: Repository,
@@ -66,6 +87,53 @@ impl GitRepo {
             message,
             &tree,
             &parents,
+        )?;
+
+        Ok(())
+    }
+
+    pub fn get_logs(&self, count: u32) -> Result<Vec<CommitInfo>> {
+        let mut revwalk = self.repo.revwalk()?;
+        revwalk.push_head()?;
+
+        let commits: Vec<CommitInfo> = revwalk
+            .take(count as usize)
+            .filter_map(|id| id.ok())
+            .filter_map(|id| self.repo.find_commit(id).ok())
+            .map(|commit| CommitInfo {
+                id: commit.id().to_string(),
+                message: commit.message().unwrap_or("").to_string(),
+                author: commit.author().name().unwrap_or("").to_string(),
+                time: commit.time(),
+            })
+            .collect();
+
+        if commits.is_empty() {
+            return Err(GitProError::NoCommits);
+        }
+
+        Ok(commits)
+    }
+
+    pub fn recommit(&self, message: &str) -> Result<()> {
+        // 获取最后一次提交
+        let head = self.repo.head()?;
+        let last_commit = head.peel_to_commit()?;
+
+        // 获取原始提交信息
+        let tree = last_commit.tree()?;
+        let parent_commits = last_commit.parents().collect::<Vec<_>>();
+        let parent_refs: Vec<&git2::Commit> = parent_commits.iter().collect();
+
+        // 创建新的提交
+        let signature = self.repo.signature()?;
+        self.repo.commit(
+            Some("HEAD"),
+            &signature,
+            &signature,
+            message,
+            &tree,
+            &parent_refs,
         )?;
 
         Ok(())

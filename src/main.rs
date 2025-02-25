@@ -38,14 +38,8 @@ fn main() {
 
     let result = match cli.command {
         Commands::Commit { message } => commands::commit::execute(message),
-        Commands::Log { count } => {
-            println!("Showing {} logs", count);
-            Ok(())
-        }
-        Commands::Recommit { message } => {
-            println!("Modifying last commit with message: {}", message);
-            Ok(())
-        }
+        Commands::Log { count } => commands::log::execute(count),
+        Commands::Recommit { message } => commands::recommit::execute(message),
     };
 
     if let Err(e) = result {
