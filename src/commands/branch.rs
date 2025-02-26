@@ -1,6 +1,6 @@
+use crate::cli::BranchCommands;
 use crate::error::Result;
 use crate::git::GitRepo;
-use crate::cli::BranchCommands;
 
 pub fn execute(action: Option<BranchCommands>) -> Result<()> {
     let repo = GitRepo::new()?;
@@ -8,7 +8,7 @@ pub fn execute(action: Option<BranchCommands>) -> Result<()> {
     match action {
         None => list_branches(&repo),
         Some(cmd) => match cmd {
-            BranchCommands::New { name } => create_branch(&repo, &name),
+            BranchCommands::New { name, base } => create_branch(&repo, &name, base.as_deref()),
             BranchCommands::Del { name } => delete_branch(&repo, &name),
             BranchCommands::Rename { old_name, new_name } => {
                 rename_branch(&repo, &old_name, &new_name)
@@ -25,9 +25,12 @@ fn list_branches(repo: &GitRepo) -> Result<()> {
     Ok(())
 }
 
-fn create_branch(repo: &GitRepo, name: &str) -> Result<()> {
-    repo.create_branch(name)?;
-    println!("Created branch '{}'", name);
+fn create_branch(repo: &GitRepo, name: &str, base: Option<&str>) -> Result<()> {
+    repo.create_branch_from(name, base)?;
+    match base {
+        Some(base_branch) => println!("Created branch '{}' from '{}'", name, base_branch),
+        None => println!("Created branch '{}'", name),
+    }
     Ok(())
 }
 

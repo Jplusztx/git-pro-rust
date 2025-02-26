@@ -140,7 +140,7 @@ impl GitRepo {
     pub fn list_branches(&self) -> Result<Vec<BranchInfo>> {
         let branches = self.repo.branches(None)?;
         let current = self.repo.head()?.shorthand().unwrap_or("").to_string();
-        
+
         let branch_list = branches
             .map(|b| {
                 let (branch, _) = b?;
@@ -151,13 +151,28 @@ impl GitRepo {
                 })
             })
             .collect::<Result<Vec<_>>>()?;
-        
+
         Ok(branch_list)
     }
 
     pub fn create_branch(&self, name: &str) -> Result<()> {
-        let head = self.repo.head()?;
-        let commit = head.peel_to_commit()?;
+        self.create_branch_from(name, None)
+    }
+
+    pub fn create_branch_from(&self, name: &str, base: Option<&str>) -> Result<()> {
+        let commit = match base {
+            Some(base_branch) => {
+                let base = self
+                    .repo
+                    .find_branch(base_branch, git2::BranchType::Local)?;
+                base.get().peel_to_commit()?
+            }
+            None => {
+                let head = self.repo.head()?;
+                head.peel_to_commit()?
+            }
+        };
+
         self.repo.branch(name, &commit, false)?;
         Ok(())
     }

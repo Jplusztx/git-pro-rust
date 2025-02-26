@@ -41,6 +41,9 @@ pub enum BranchCommands {
     New {
         /// Branch name
         name: String,
+        /// Base branch (default: current branch)
+        #[arg(short = 'b', long)]
+        base: Option<String>,
     },
     /// Delete a branch
     Del {
