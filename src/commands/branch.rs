@@ -13,6 +13,9 @@ pub fn execute(action: Option<BranchCommands>) -> Result<()> {
             BranchCommands::Rename { old_name, new_name } => {
                 rename_branch(&repo, &old_name, &new_name)
             }
+            BranchCommands::DelRegex { pattern, force } => {
+                delete_branches_by_regex(&repo, &pattern, force)
+            }
         },
     }
 }
@@ -43,5 +46,20 @@ fn delete_branch(repo: &GitRepo, name: &str) -> Result<()> {
 fn rename_branch(repo: &GitRepo, old_name: &str, new_name: &str) -> Result<()> {
     repo.rename_branch(old_name, new_name)?;
     println!("Renamed branch '{}' to '{}'", old_name, new_name);
+    Ok(())
+}
+
+fn delete_branches_by_regex(repo: &GitRepo, pattern: &str, force: bool) -> Result<()> {
+    let deleted = repo.delete_branches_by_pattern(pattern, force)?;
+
+    if deleted.is_empty() {
+        println!("No branches matched pattern '{}'", pattern);
+    } else {
+        println!("Deleted {} branches:", deleted.len());
+        for branch in deleted {
+            println!("  {}", branch);
+        }
+    }
+
     Ok(())
 }

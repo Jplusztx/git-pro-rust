@@ -57,4 +57,12 @@ pub enum BranchCommands {
         /// New branch name
         new_name: String,
     },
+    /// Delete branches matching regex pattern
+    DelRegex {
+        /// Regex pattern
+        pattern: String,
+        /// Force delete without confirmation
+        #[arg(short, long)]
+        force: bool,
+    },
 }

@@ -1,5 +1,6 @@
 use crate::error::{GitProError, Result};
 use git2::{Repository, RepositoryState, Status, StatusOptions, Time};
+use regex::Regex;
 use std::fmt;
 
 pub struct CommitInfo {
@@ -187,6 +188,27 @@ impl GitRepo {
         let mut branch = self.repo.find_branch(old_name, git2::BranchType::Local)?;
         branch.rename(new_name, false)?;
         Ok(())
+    }
+
+    pub fn delete_branches_by_pattern(&self, pattern: &str, force: bool) -> Result<Vec<String>> {
+        let re = Regex::new(pattern).map_err(|e| GitProError::RepositoryError(e.to_string()))?;
+        let branches = self.list_branches()?;
+        let mut deleted = Vec::new();
+
+        for branch in branches {
+            if re.is_match(&branch.name) && !branch.is_current {
+                if !force {
+                    // 如果不是强制删除，跳过受保护的分支（如 main, master）
+                    if ["main", "master"].contains(&branch.name.as_str()) {
+                        continue;
+                    }
+                }
+                self.delete_branch(&branch.name)?;
+                deleted.push(branch.name);
+            }
+        }
+
+        Ok(deleted)
     }
 }
 
