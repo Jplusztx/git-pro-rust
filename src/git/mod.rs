@@ -156,10 +156,6 @@ impl GitRepo {
         Ok(branch_list)
     }
 
-    pub fn create_branch(&self, name: &str) -> Result<()> {
-        self.create_branch_from(name, None)
-    }
-
     pub fn create_branch_from(&self, name: &str, base: Option<&str>) -> Result<()> {
         // 检查分支是否已存在
         if let Ok(_) = self.repo.find_branch(name, git2::BranchType::Local) {
