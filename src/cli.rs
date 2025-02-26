@@ -32,6 +32,9 @@ pub enum Commands {
     Branch {
         #[command(subcommand)]
         action: Option<BranchCommands>,
+        /// Create and switch to a new branch
+        #[arg(short = 's')]
+        switch: Option<String>,
     },
 }
 
@@ -44,6 +47,9 @@ pub enum BranchCommands {
         /// Base branch (default: current branch)
         #[arg(short = 'b', long)]
         base: Option<String>,
+        /// Switch to the new branch after creation
+        #[arg(short = 's', long)]
+        switch: bool,
     },
     /// Delete a branch
     Del {

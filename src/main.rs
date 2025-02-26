@@ -13,7 +13,7 @@ fn main() {
         Commands::Commit { message } => commands::commit::execute(message),
         Commands::Log { count } => commands::log::execute(count),
         Commands::Recommit { message } => commands::recommit::execute(message),
-        Commands::Branch { action } => commands::branch::execute(action),
+        Commands::Branch { action, switch } => commands::branch::execute(action, switch),
     };
 
     if let Err(e) = result {

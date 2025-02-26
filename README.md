@@ -51,6 +51,9 @@ git-pro recommit -m "new commit message"
 ### 分支管理
 
 ```bash
+# 快速创建并切换到新分支
+git-pro branch -s feature-1
+
 # 列出所有分支
 git-pro branch
 
@@ -59,6 +62,12 @@ git-pro branch new feature-1
 
 # 基于指定分支创建新分支
 git-pro branch new feature-2 -b main
+
+# 创建新分支并切换
+git-pro branch new feature-3 -s
+
+# 基于指定分支创建并切换
+git-pro branch new feature-4 -b main -s
 
 # 删除分支
 git-pro branch del feature-1

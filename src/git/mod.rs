@@ -161,6 +161,14 @@ impl GitRepo {
     }
 
     pub fn create_branch_from(&self, name: &str, base: Option<&str>) -> Result<()> {
+        // 检查分支是否已存在
+        if let Ok(_) = self.repo.find_branch(name, git2::BranchType::Local) {
+            return Err(GitProError::RepositoryError(format!(
+                "Branch '{}' already exists",
+                name
+            )));
+        }
+
         let commit = match base {
             Some(base_branch) => {
                 let base = self
@@ -209,6 +217,18 @@ impl GitRepo {
         }
 
         Ok(deleted)
+    }
+
+    pub fn switch_branch(&self, name: &str) -> Result<()> {
+        let branch = self.repo.find_branch(name, git2::BranchType::Local)?;
+        let commit = branch.get().peel_to_commit()?;
+        self.repo.set_head(branch.get().name().unwrap())?;
+        self.repo.checkout_tree(&commit.as_object(), None)?;
+        Ok(())
+    }
+
+    pub fn branch_exists(&self, name: &str) -> bool {
+        self.repo.find_branch(name, git2::BranchType::Local).is_ok()
     }
 }
 
