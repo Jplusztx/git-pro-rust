@@ -136,4 +136,57 @@ impl GitRepo {
 
         Ok(())
     }
+
+    pub fn list_branches(&self) -> Result<Vec<BranchInfo>> {
+        let branches = self.repo.branches(None)?;
+        let current = self.repo.head()?.shorthand().unwrap_or("").to_string();
+        
+        let branch_list = branches
+            .map(|b| {
+                let (branch, _) = b?;
+                let name = branch.name()?.unwrap_or("").to_string();
+                Ok(BranchInfo {
+                    is_current: name == current,
+                    name,
+                })
+            })
+            .collect::<Result<Vec<_>>>()?;
+        
+        Ok(branch_list)
+    }
+
+    pub fn create_branch(&self, name: &str) -> Result<()> {
+        let head = self.repo.head()?;
+        let commit = head.peel_to_commit()?;
+        self.repo.branch(name, &commit, false)?;
+        Ok(())
+    }
+
+    pub fn delete_branch(&self, name: &str) -> Result<()> {
+        let mut branch = self.repo.find_branch(name, git2::BranchType::Local)?;
+        branch.delete()?;
+        Ok(())
+    }
+
+    pub fn rename_branch(&self, old_name: &str, new_name: &str) -> Result<()> {
+        let mut branch = self.repo.find_branch(old_name, git2::BranchType::Local)?;
+        branch.rename(new_name, false)?;
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub struct BranchInfo {
+    pub name: String,
+    pub is_current: bool,
+}
+
+impl fmt::Display for BranchInfo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.is_current {
+            write!(f, "* {}", self.name)
+        } else {
+            write!(f, "  {}", self.name)
+        }
+    }
 }

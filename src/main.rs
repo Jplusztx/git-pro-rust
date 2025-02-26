@@ -1,37 +1,10 @@
-use clap::{Parser, Subcommand};
+mod cli;
 mod commands;
 mod error;
 mod git;
 
-#[derive(Parser)]
-#[command(name = "git-pro")]
-#[command(about = "A CLI tool to simplify git operations", long_about = None)]
-struct Cli {
-    #[command(subcommand)]
-    command: Commands,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    /// Commit all changes
-    Commit {
-        /// Commit message
-        #[arg(short, long)]
-        message: String,
-    },
-    /// Show commit logs
-    Log {
-        /// Number of logs to show
-        #[arg(default_value_t = 10)]
-        count: u32,
-    },
-    /// Modify the last commit message
-    Recommit {
-        /// New commit message
-        #[arg(short, long)]
-        message: String,
-    },
-}
+use clap::Parser;
+use cli::{Cli, Commands};
 
 fn main() {
     let cli = Cli::parse();
@@ -40,6 +13,7 @@ fn main() {
         Commands::Commit { message } => commands::commit::execute(message),
         Commands::Log { count } => commands::log::execute(count),
         Commands::Recommit { message } => commands::recommit::execute(message),
+        Commands::Branch { action } => commands::branch::execute(action),
     };
 
     if let Err(e) = result {
